@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Product>> GetAll(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Product>> GetAll(CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Product?> Find(Guid id, CancellationToken cancellationToken)
+        public async Task<Product?> Find(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Product> Create(Product product, CancellationToken cancellationToken)
+        public async Task<Product> Create(Product product, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Product> Update(Product product, CancellationToken cancellationToken)
+        public async Task<Product> Update(Product product, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -51,18 +51,26 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
-                Product product = new Product()
-                {
-                    Id = id
-                };
+                var product = await context.Products.FindAsync(new object[] { id }, cancellationToken);
+
+                if (product is null)
+                    return false;
 
                 context.Products.Remove(product);
 
-                return await context.SaveChangesAsync(cancellationToken) > 0;
+                try
+                {
+                    await context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
         }
     }

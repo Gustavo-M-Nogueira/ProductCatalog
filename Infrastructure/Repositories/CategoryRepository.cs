@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Category>> GetAll(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Category>> GetAll(CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Category?> Find(int id, CancellationToken cancellationToken)
+        public async Task<Category?> Find(int id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Category> Create(Category category, CancellationToken cancellationToken)
+        public async Task<Category> Create(Category category, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Category> Update(Category category, CancellationToken cancellationToken)
+        public async Task<Category> Update(Category category, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -51,18 +51,26 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> Delete(int id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(int id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
-                Category category = new Category()
-                {
-                    Id = id
-                };
+                var category = await context.Categories.FindAsync(new object[] { id }, cancellationToken);
+
+                if (category is null)
+                    return false;
 
                 context.Categories.Remove(category);
 
-                return await context.SaveChangesAsync(cancellationToken) > 0;
+                try
+                {
+                    await context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
         }
     }

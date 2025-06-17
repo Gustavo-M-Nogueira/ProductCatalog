@@ -1,6 +1,5 @@
 ﻿using Application.Repositories;
 using BuildingBlocks.CQRS;
-using Domain.Entities;
 using Tag = Domain.Entities.Tag;
 
 namespace Application.Services.Tags.Commands.DeleteTag

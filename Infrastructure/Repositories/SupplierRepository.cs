@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Supplier>> GetAll(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Supplier>> GetAll(CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Supplier?> Find(Guid id, CancellationToken cancellationToken)
+        public async Task<Supplier?> Find(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Supplier> Create(Supplier supplier, CancellationToken cancellationToken)
+        public async Task<Supplier> Create(Supplier supplier, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Supplier> Update(Supplier supplier, CancellationToken cancellationToken)
+        public async Task<Supplier> Update(Supplier supplier, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -51,18 +51,26 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
-                Supplier supplier = new Supplier()
-                {
-                    Id = id
-                };
+                var supplier = await context.Suppliers.FindAsync(new object[] { id }, cancellationToken);
+
+                if (supplier is null)
+                    return false;
 
                 context.Suppliers.Remove(supplier);
 
-                return await context.SaveChangesAsync(cancellationToken) > 0;
+                try
+                {
+                    await context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
         }
     }

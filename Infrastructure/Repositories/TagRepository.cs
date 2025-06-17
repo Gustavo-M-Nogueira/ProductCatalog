@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Tag>> GetAll(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Tag>> GetAll(CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -22,7 +22,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Tag?> Find(int id, CancellationToken cancellationToken)
+        public async Task<Tag?> Find(int id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -30,7 +30,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Tag> Create(Tag tag, CancellationToken cancellationToken)
+        public async Task<Tag> Create(Tag tag, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Tag> Update(Tag tag, CancellationToken cancellationToken)
+        public async Task<Tag> Update(Tag tag, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -52,18 +52,32 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> Delete(int id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(int id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
-                Tag tag = new Tag()
-                {
-                    Id = id
-                };
+                //Tag tag = new Tag()
+                //{
+                //    Id = id
+                //};
+
+
+                var tag = await context.Tags.FindAsync(new object[] { id }, cancellationToken);
+
+                if (tag is null)
+                    return false;
 
                 context.Tags.Remove(tag);
 
-                return await context.SaveChangesAsync(cancellationToken) > 0;
+                try
+                {
+                    await context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (Exception ex) 
+                {
+                    return false;
+                }
             }
         }
     }

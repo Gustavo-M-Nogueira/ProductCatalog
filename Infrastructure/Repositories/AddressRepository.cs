@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Address>> GetAll(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Address>> GetAll(CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Address?> Find(Guid id, CancellationToken cancellationToken)
+        public async Task<Address?> Find(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Address> Create(Address address, CancellationToken cancellationToken)
+        public async Task<Address> Create(Address address, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Address> Update(Address address, CancellationToken cancellationToken)
+        public async Task<Address> Update(Address address, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
@@ -51,18 +51,26 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken = default)
         {
             using (ApplicationDbContext context = _contextFactory.CreateDbContext())
             {
-                Address address = new Address()
-                {
-                    Id = id
-                };
+                var address = await context.Addresses.FindAsync(new object[] { id }, cancellationToken);
+
+                if (address is null)
+                    return false;
 
                 context.Addresses.Remove(address);
 
-                return await context.SaveChangesAsync(cancellationToken) > 0;
+                try
+                {
+                    await context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
         }
     }
