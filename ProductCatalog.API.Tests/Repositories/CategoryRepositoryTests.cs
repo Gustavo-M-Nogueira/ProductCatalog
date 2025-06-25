@@ -1,53 +1,27 @@
 ﻿using Domain.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ProductCatalog.API.Tests.InMemoryDb;
 
 namespace ProductCatalog.API.Tests.Repositories
 {
     public class CategoryRepositoryTests
     {
-        private readonly static int categoriesNumber = 5;
-        private readonly InMemoryDatabase _InMemoryDb;
-        public static IEnumerable<object[]> ValidCategoryIds => Enumerable.Range(1, categoriesNumber).Select(id => new object[] { id });
+        private static readonly int _categoryQuantity = 5;
+        private readonly CategoryDb _categoryDb;
+        public static IEnumerable<object[]> ValidCategoryIds => Enumerable.Range(1, _categoryQuantity).Select(id => new object[] { id });
         public static IEnumerable<object[]> NewValidCategoryIds => Enumerable.Range(11, 10).Select(id => new object[] { id });
         public static IEnumerable<object[]> InvalidCategoryIds => Enumerable.Range(-10, 10).Select(id => new object[] { id });
 
         public CategoryRepositoryTests()
         {
-            _InMemoryDb = new InMemoryDatabase();
+            _categoryDb = new CategoryDb(_categoryQuantity);
         }
-
-        private async Task<CategoryRepository> GetCategoryRepository()
-        {
-            var dbContext = await GetDatabaseContext();
-            var fakeDbFactory = new FakeDbContextFactory(dbContext);
-            return new CategoryRepository(fakeDbFactory);
-        }
-
-        private async Task<ApplicationDbContext> GetDatabaseContext()
-        {
-            var dbContext = await _InMemoryDb.GetDatabaseContext();
-
-            if (await dbContext.Categories.CountAsync() <= 0)
-            {
-                for (int i = 0; i < categoriesNumber; i++)
-                {
-                    dbContext.Categories.Add(
-                    new Category()
-                    {
-                        Title = $"Category {i}"
-                    });
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-            return dbContext;
-        }
-
 
         [Fact]
         public async Task CategoryRepository_GetAll()
         {
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             var result = await categoryRepository.GetAll();
 
@@ -60,7 +34,7 @@ namespace ProductCatalog.API.Tests.Repositories
         [MemberData(nameof(ValidCategoryIds))]
         public async Task CategoryRepository_Find_ShouldFindById(int id)
         {
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             var result = await categoryRepository.Find(id);
 
@@ -74,7 +48,7 @@ namespace ProductCatalog.API.Tests.Repositories
         [MemberData(nameof(InvalidCategoryIds))]
         public async Task CategoryRepository_Find_ShouldNotFindWrongId(int id)
         {
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             var result = await categoryRepository.Find(id);
 
@@ -89,7 +63,7 @@ namespace ProductCatalog.API.Tests.Repositories
             var category = new Category();
             category.Id = id;
             category.Title = title;
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             var result = await categoryRepository.Create(category);
 
@@ -104,7 +78,7 @@ namespace ProductCatalog.API.Tests.Repositories
         [InlineData(1, "New Title")]
         public async Task CategoryRepository_Update(int id, string newTitle)
         {
-            var dbContext = await GetDatabaseContext();
+            var dbContext = await _categoryDb.GetCategoryDatabaseContext();
             var fakeDbFactory = new FakeDbContextFactory(dbContext);
             var categoryRepository = new CategoryRepository(fakeDbFactory);
 
@@ -127,7 +101,7 @@ namespace ProductCatalog.API.Tests.Repositories
         [MemberData(nameof(ValidCategoryIds))]
         public async Task CategoryRepository_Delete_ShouldWork(int id)
         {
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             bool result = await categoryRepository.Delete(id);
 
@@ -140,7 +114,7 @@ namespace ProductCatalog.API.Tests.Repositories
         [MemberData(nameof(NewValidCategoryIds))]
         public async Task CategoriesRepository_Delete_ShouldNotFound(int id)
         {
-            var categoryRepository = await GetCategoryRepository();
+            var categoryRepository = await _categoryDb.GetCategoryRepository();
 
             bool result = await categoryRepository.Delete(id);
 

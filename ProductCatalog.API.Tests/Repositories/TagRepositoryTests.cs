@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ProductCatalog.API.Tests.InMemoryDb;
 using Tag = Domain.Entities.Tag;
 
 namespace ProductCatalog.API.Tests.Repositories

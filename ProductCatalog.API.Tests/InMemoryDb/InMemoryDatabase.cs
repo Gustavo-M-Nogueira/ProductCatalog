@@ -1,7 +1,7 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ProductCatalog.API.Tests
+namespace ProductCatalog.API.Tests.InMemoryDb
 {
     public class InMemoryDatabase
     {
